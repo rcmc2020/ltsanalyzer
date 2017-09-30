@@ -4,26 +4,16 @@ using System.Text;
 
 namespace LTSAnalyzer
 {
-	class Node : ElementBase
-	{
-		private string _lat;
+   class Node : ElementBase
+   {
+      public string Lat { get; set; }
 
-		public string Lat
-		{
-			get { return _lat; }
-			set { _lat = value; }
-		}
-		private string _lon;
+      public string Lon { get; set; }
 
-		public string Lon
-		{
-			get { return _lon; }
-			set { _lon = value; }
-		}
-		public Node(string lat, string lon)
-		{
-			_lat = lat;
-			_lon = lon;
-		}
-	}
+      public Node(string lat, string lon)
+      {
+         Lat = lat;
+         Lon = lon;
+      }
+   }
 }

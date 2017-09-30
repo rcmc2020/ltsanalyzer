@@ -10,20 +10,11 @@ namespace LTSAnalyzer
 		/// A list of all nodes associated with this way.
 		/// </summary>
 		List<string> _nodes;
-		
-		/// <summary>
-		/// The stress level of this way.
-		/// </summary>
-		int _level;
 
 		/// <summary>
 		/// A way is associated with a single level.
 		/// </summary>
-		public int Level
-		{
-			get { return _level; }
-			set { _level = value; }
-		}
+		public int Level { get; set; }
 
 		/// <summary>
 		/// A quick list to quickly elimate specified ways before the analysis phase.
@@ -105,7 +96,7 @@ namespace LTSAnalyzer
 							return false;
 						}
 					}
-					else if (_tags["highway"] == "service" && HasTag("service", "parking_aisle"))
+					else if (_tags["highway"] == "service" && (HasTag("service", "parking_aisle") || HasTag("service", "driveway")))
 					{
 						return false;
 					}

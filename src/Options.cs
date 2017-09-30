@@ -17,7 +17,7 @@ namespace LTSAnalyzer
 		public void Usage()
 		{
 			Console.WriteLine("OSM Cycling Stress Analyzer");
-			Console.WriteLine("Usage: osmstress -f filename [-p prefix]");
+			Console.WriteLine("Usage: ltsanalyzer -f filename [-p prefix]");
 			Console.WriteLine("where:");
 			Console.WriteLine("filename is the name of an OSM XML file.");
 			Console.WriteLine("prefix   is the prefix to be used for all output files (default is level_).");

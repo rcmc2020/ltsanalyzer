@@ -1,0 +1,7 @@
+
+*.pdb
+*.exe
+*.manifest
+src/obj/Debug/LTSAnalyzer.csproj.FileListAbsolute.txt
+*.osm
+*.suo

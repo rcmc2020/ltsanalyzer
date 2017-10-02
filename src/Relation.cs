@@ -4,20 +4,20 @@ using System.Text;
 
 namespace LTSAnalyzer
 {
-	class Relation : ElementBase
-	{
-		List<Member> _members;
+   class Relation : ElementBase
+   {
+      List<Member> _members;
 
-		internal List<Member> Members
-		{
-			get
-			{
-				if (_members == null)
-				{
-					_members = new List<Member>();
-				}
-				return _members;
-			}
-		}
-	}
+      internal List<Member> Members
+      {
+         get
+         {
+            if (_members == null)
+            {
+               _members = new List<Member>();
+            }
+            return _members;
+         }
+      }
+   }
 }

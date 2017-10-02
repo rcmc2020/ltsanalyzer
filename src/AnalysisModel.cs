@@ -89,7 +89,7 @@ namespace LTSAnalyzer
                   return false;
                }
             }
-            else if (way.Tags["highway"] == "service" && way.HasTag("service", "parking_aisle"))
+            else if (way.Tags["highway"] == "service" && (way.HasTag("service", "parking_aisle") || way.HasTag("service", "driveway")))
             {
                return false;
             }

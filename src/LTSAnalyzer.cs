@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Xml;
 
 namespace LTSAnalyzer
@@ -78,20 +79,23 @@ namespace LTSAnalyzer
             }
          }
       }
-      
+
       /// <summary>
-      /// Processes a meta node at the current read position in the reader.
+      /// Processes a meta element at the current read position in the reader.
+      /// Exits with the reader positioned at the next sibling element.
       /// </summary>
       /// <param name="reader"></param>
-      private void ProcessMeta(XmlReader reader) {
+      private void ProcessMeta(XmlReader reader)
+      {
          if (reader.IsStartElement("meta"))
          {
             _osmBase = reader.GetAttribute("osm_base");
-            if (reader.IsEmptyElement) 
+            if (reader.IsEmptyElement)
             {
                reader.Read();
             }
-            else {
+            else
+            {
                throw new Exception("Unexpected element: " + reader.ReadOuterXml());
             }
          }
@@ -103,6 +107,7 @@ namespace LTSAnalyzer
 
       /// <summary>
       /// Processes a bounds element at the current read position in the reader.
+      /// Exits with the reader positioned at the next sibling element.
       /// </summary>
       /// <param name="reader"></param>
       private void ProcessBounds(XmlReader reader)
@@ -127,10 +132,10 @@ namespace LTSAnalyzer
             throw new Exception("Unexpected node: " + reader.Name);
          }
       }
-      
+
       /// <summary>
-      /// Processes a node at the current read position in the reader.
-      /// </summary>
+      /// Processes a node element at the current read position in the reader.
+      /// Exits with the reader positioned at the next sibling element.
       /// <param name="i_reader"></param>
       private void ProcessNodes(XmlReader reader)
       {
@@ -176,8 +181,9 @@ namespace LTSAnalyzer
 
       /// <summary>
       /// Processes a way element at the current read position in the reader.
+      /// Exits with the reader positioned at the next sibling element.
       /// </summary>
-      /// <param name="i_reader"></param>
+      /// <param name="i_reader">An XmlReader object with the read position on a way element.</param>
       private void ProcessWays(XmlReader reader)
       {
          if (reader.IsStartElement("way"))
@@ -287,18 +293,93 @@ namespace LTSAnalyzer
       }
 
       /// <summary>
-      /// Generates the output files.
+      /// Generates the output files based on the command line input options.
       /// </summary>
-      /// <param name="options"></param>
       public void CreateLevelFiles()
       {
+         switch (_options.OutputType)
+         {
+            case OutputType.OSM: CreateLevelFilesOSM(); break;
+            case OutputType.GeoJSON: CreateLevelFilesGeoJson(); break;
+            default:
+               throw new Exception("Error: Invalid OutputType.");
+         }
+      }
+
+      /// <summary>
+      /// Strip trailing zeroes from string if it's a decimal value.
+      /// </summary>
+      /// <param name="value">A numeric string</param>
+      /// <returns>A numeric string with trailing zeroes removed.</returns>
+      private string FormatLatLong(string value)
+      {
+         return (value[value.Length - 1] == '0') ? double.Parse(value).ToString() : value;
+      }
+
+      /// <summary>
+      /// Generates the GeoJSON output files.
+      /// </summary>
+      public void CreateLevelFilesGeoJson()
+      {
          string path = _options.Directory;
-         string rootname = _options.Output;
+         string prefix = _options.Prefix;
+         for (int level = 1; level <= AnalysisModel.LevelCount; level++)
+         {
+            string filename = Path.Combine(path, prefix + level.ToString() + ".json");
+            if (File.Exists(filename))
+            {
+               File.Delete(filename);
+            }
+            using (StreamWriter writer = new StreamWriter(filename, false))
+            {
+               writer.Write("{\"type\":\"FeatureCollection\",\"features\":[");
+               bool fsep = false;
+               foreach (KeyValuePair<string, Way> kvway in _ways)
+               {
+                  StringBuilder sb = new StringBuilder();
+                  Way w = kvway.Value;
+                  if (w.Level == level)
+                  {
+                     if (fsep) sb.Append(",");
+                     fsep = true;
+                     sb.Append("{\"type\":\"Feature\",\"id\":\"way/");
+                     sb.Append(kvway.Key);
+                     sb.Append("\",\"properties\":{\"id\":\"way/");
+                     sb.Append(kvway.Key);
+                     sb.Append("\"},\"geometry\":{\"type\":\"LineString\",\"coordinates\":[");
+                     bool csep = false;
+                     foreach (string nd in w.Nodes)
+                     {
+                        Node node = _nodes[nd];
+                        if (csep) sb.Append(",");
+                        csep = true;
+                        sb.Append("[");
+                        sb.Append(FormatLatLong(node.Lon));
+                        sb.Append(",");
+                        sb.Append(FormatLatLong(node.Lat));
+                        sb.Append("]");
+                     }
+                     sb.Append("]}}");
+                  }
+                  writer.Write(sb.ToString());
+               }
+               writer.Write("]}");
+            }
+         }
+      }
+
+      /// <summary>
+      /// Generates the OSM output files.
+      /// </summary>
+      public void CreateLevelFilesOSM()
+      {
+         string path = _options.Directory;
+         string prefix = _options.Prefix;
          XmlWriterSettings xs = new XmlWriterSettings();
          xs.Indent = true;
-         for (int f = 1; f <= AnalysisModel.LevelCount; f++)
+         for (int level = 1; level <= AnalysisModel.LevelCount; level++)
          {
-            string filename = Path.Combine(path, rootname + f.ToString() + ".osm");
+            string filename = Path.Combine(path, prefix + level.ToString() + ".osm");
             if (File.Exists(filename))
             {
                File.Delete(filename);
@@ -328,7 +409,7 @@ namespace LTSAnalyzer
                   foreach (KeyValuePair<string, Node> kvnode in _nodes)
                   {
                      Node n = kvnode.Value;
-                     if (n.IsLevel(f))
+                     if (n.IsLevel(level))
                      {
                         writer.WriteStartElement("node");
                         writer.WriteAttributeString("id", kvnode.Key);
@@ -340,7 +421,7 @@ namespace LTSAnalyzer
                   foreach (KeyValuePair<string, Way> kvway in _ways)
                   {
                      Way w = kvway.Value;
-                     if (w.Level == f)
+                     if (w.Level == level)
                      {
                         writer.WriteStartElement("way");
                         writer.WriteAttributeString("id", kvway.Key);

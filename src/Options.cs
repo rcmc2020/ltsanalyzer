@@ -20,18 +20,20 @@ namespace LTSAnalyzer
       public string Directory { get; set; }
       public string Prefix { get; set; }
       public OutputType OutputType { get; set; }
+      public bool Verbose { get; set; }
 
       public void Usage()
       {
          string name = System.AppDomain.CurrentDomain.FriendlyName;
          Console.WriteLine("OSM Cycling Stress Analyzer");
-         Console.WriteLine("Usage: " + name + " -f filename [-o otype][-p prefix]");
+         Console.WriteLine("Usage: " + name + " -f filename [-o otype][-p prefix][-v]");
          Console.WriteLine("where:");
          Console.WriteLine(" filename is path to the OSM XML input file.");
          Console.WriteLine(" otype    is the output file type. It is either \"osm\" or \"geojson\".");
          Console.WriteLine("          The default is osm.");
          Console.WriteLine(" prefix   is the prefix to be used for all output files.");
          Console.WriteLine("          The default is \"level_\".");
+         Console.WriteLine(" -v       Enables verbose output.");
       }
 
       public bool Load(string[] args)
@@ -40,6 +42,8 @@ namespace LTSAnalyzer
          Filename = "";
          OutputType = OutputType.OSM;
          Prefix = "level_";
+         Verbose = false;
+         
          for (int i = 0; i < args.Length; i++)
          {
             string arg = args[i];
@@ -95,6 +99,10 @@ namespace LTSAnalyzer
                   Console.WriteLine("Error: -p command line argument must be followed by a file prefix.");
                   return false;
                }
+            }
+            else if (arg == "-v")
+            {
+               Verbose = true;
             }
          }
          if (string.IsNullOrEmpty(Filename) || string.IsNullOrEmpty(Prefix))

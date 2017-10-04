@@ -8,139 +8,35 @@ namespace LTSAnalyzer
    class AnalysisModel
    {
       /// <summary>
-      /// A quick list to quickly elimate specified ways before the analysis phase.
+      /// The number of levels in the analysis. Currently this value is fixed but 
+      /// in future versions, it may be loaded with the analysis definition.
       /// </summary>
-      List<string> _ignoreKeyList;
-
       static int _levels;
-      
-      static AnalysisModel() {
+
+      static AnalysisModel()
+      {
          _levels = -1;
       }
 
-      public AnalysisModel()
+      public AnalysisModel() {}
+
+      public void Initialize()
       {
-         _ignoreKeyList = new List<string>() { 
-            "addr:housenumber", 
-            "addr:interpolation", 
-            "aeroway", 
-            "amenity", 
-            "barrier", 
-            "boundary", 
-            "building", 
-            "building:levels", 
-            "building:part", 
-            "disused:amenity", 
-            "indoor", 
-            "landcover", 
-            "landuse", 
-            "leisure", 
-            "man_made", 
-            "indoor", 
-            "natural", 
-            "piste:type", 
-            "place", 
-            "power", 
-            "public_transport", 
-            "railway", 
-            "seamark:type", 
-            "shop", 
-            "waterway" };
-      }
-      
-      public void Initialize() {
-         // If we load from a file, we can initialize this value here.
+         // If we load the analysis model from a definition file, we 
+         // can initialize the number of levels value here.
          _levels = 4;
       }
-      
-      public static int LevelCount {
-         get {
-            if (_levels == -1) {
+
+      public static int LevelCount
+      {
+         get
+         {
+            if (_levels == -1)
+            {
                throw new Exception("AnalysisModel.Initialize not called.");
             }
             return _levels;
          }
-      }
-
-      /// <summary>
-      /// Returns True if the way is cyclable.
-      /// </summary>
-      public bool IsCyclable(Way way)
-      {
-         bool result = false;
-         if (way.Tags.Count == 0)
-         {
-            return false;
-         }
-         else if (way.Tags.ContainsKey("highway"))
-         {
-            if (way.HasTag("bicycle", "no"))
-            {
-               return false;
-            }
-            else if (way.HasTag("highway", "motorway") || way.HasTag("highway", "motorway_link"))
-            {
-               if (way.HasTag("bicycle", "yes"))
-               {
-                  return true;
-               }
-               else
-               {
-                  return false;
-               }
-            }
-            else if (way.Tags["highway"] == "service" && (way.HasTag("service", "parking_aisle") || way.HasTag("service", "driveway")))
-            {
-               return false;
-            }
-            return true;
-         }
-         else if (way.Tags.ContainsKey("bicycle"))
-         {
-            if (way.Tags["bicycle"] == "yes")
-            {
-               if (way.HasTag("piste:type", "nordic"))
-               {
-                  return false;
-               }
-               // FIXME: The following statements are incorrect.
-               else if (way.HasTag("crossing", "uncontrolled"))
-               {
-                  return true;
-               }
-               else
-               {
-                  return true;
-               }
-            }
-            else
-            {
-               // FIXME: This isn't correct.
-               if (way.HasTag("barrier", "gate"))
-               {
-                  return false;
-               }
-               else
-               {
-                  return false;
-               }
-            }
-         }
-         else
-         {
-            if (way.Tags.Count == 1)
-            {
-               if (way.Tags.ContainsKey("note") || way.Tags.ContainsKey("level") || way.Tags.ContainsKey("layer"))
-               {
-                  return false;
-               }
-            }
-            foreach (string s in _ignoreKeyList)
-            {
-               if (way.Tags.ContainsKey(s)) return false;
-            }
-         }
-         return result;
       }
 
       /// <summary>
@@ -173,36 +69,6 @@ namespace LTSAnalyzer
       }
 
       /// <summary>
-      /// Returns True if the way is a cyclable path.
-      /// </summary>
-      public bool IsPath(Way way)
-      {
-         if (way.Tags.ContainsKey("highway"))
-         {
-            if (way.HasTag("highway", "cycleway") || way.HasTag("highway", "footway"))
-            {
-               return true;
-            }
-            else if (way.HasTag("highway", "path"))
-            {
-               if (way.HasTag("bicycle", "no"))
-               {
-                  return false;
-               }
-               else if (way.Tags.ContainsKey("cycleway"))
-               {
-                  return true;
-               }
-               else
-               {
-                  return true;
-               }
-            }
-         }
-         return false;
-      }
-
-      /// <summary>
       /// Returns the maximum speed of the way.
       /// </summary>
       public int MaxSpeed(Way way)
@@ -230,31 +96,6 @@ namespace LTSAnalyzer
          return 50;
       }
 
-      /// <summary>
-      /// Return True if the way is a residential road.
-      /// </summary>
-      public bool IsResidential(Way way)
-      {
-         return way.HasTag("highway", "residential");
-      }
-
-      /// <summary>
-      /// Returns True if the way is one way.
-      /// </summary>
-      public bool IsOneWay(Way way)
-      {
-         return way.HasTag("oneway", "yes");
-      }
-
-      /// <summary>
-      /// Returns True if the way is a service road.
-      /// </summary>
-      public bool IsService(Way way)
-      {
-         return way.HasTag("highway", "service");
-      }
-
-
       public void Run(Dictionary<string, Way> ways, Dictionary<string, Node> nodes)
       {
          int level;
@@ -262,44 +103,7 @@ namespace LTSAnalyzer
          {
             string id = kv.Key;
             Way way = kv.Value;
-            level = 0;
-            if (IsCyclable(way))
-            {
-               if (IsService(way))
-               {
-                  level = 2;
-               }
-               else if (IsPath(way))
-               {
-                  level = 1;
-               }
-               else if (Lanes(way) > 2 || ((!IsResidential(way)) && Lanes(way) > 1 && IsOneWay(way)))
-               {
-                  if (MaxSpeed(way) <= 40)
-                  {
-                     level = 3;
-                  }
-                  else
-                  {
-                     level = 4;
-                  }
-               }
-               else if (IsResidential(way))
-               {
-                  level = 2;
-               }
-               else
-               {
-                  if (MaxSpeed(way) <= 40)
-                  {
-                     level = 2;
-                  }
-                  else
-                  {
-                     level = 3;
-                  }
-               }
-            }
+            level = EvaluateWay(id, way);
             way.Level = level;
             // This marks all nodes in our file with being referenced in that level.
             if (level > 0)
@@ -310,6 +114,67 @@ namespace LTSAnalyzer
                }
             }
          }
+      }
+
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name="id"></param>
+      /// <param name="way"></param>
+      /// <returns></returns>
+      public int EvaluateWay(string id, Way way)
+      {
+         if (way.HasTag("highway") || way.HasTag("bicycle"))
+         {
+            if (way.HasTag("bicycle", "no"))
+            {
+               return 0;
+            }
+            if (way.HasTag("highway", "motorway") || way.HasTag("highway", "motorway_link"))
+            {
+               return 0;
+            }
+            if (way.HasTag("highway", "service"))
+            {
+               return (way.HasTag("service", "driveway") || way.HasTag("service", "parking_aisle")) ? 0 : 2;
+            }
+            if (way.HasTag("highway", "cycleway") || way.HasTag("highway", "footway"))
+            {
+               return 1;
+            }
+            if (way.HasTag("highway", "path"))
+            {
+               return 1;
+            }
+            if (Lanes(way) > 2 || ((!way.HasTag("highway", "residential")) && Lanes(way) > 1 && way.HasTag("oneway", "yes")))
+            {
+               if (MaxSpeed(way) <= 40)
+               {
+                  return 3;
+               }
+               else
+               {
+                  return 4;
+               }
+            }
+            if (way.HasTag("highway", "residential"))
+            {
+               if (MaxSpeed(way) > 50)
+               {
+                  return 3;
+               }
+               return 2;
+            }
+            if (MaxSpeed(way) <= 40)
+            {
+               return 2;
+            }
+            else
+            {
+               return 3;
+            }
+         }
+         return 0;
       }
    }
 }

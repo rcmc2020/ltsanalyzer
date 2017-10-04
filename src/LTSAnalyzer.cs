@@ -34,6 +34,7 @@ namespace LTSAnalyzer
       /// </summary>
       public void Load()
       {
+         if (_options.Verbose) Console.WriteLine("Loading '" + _options.Filename + "'...");
          int notes = 0, meta = 0, bounds = 0, nodes = 0, ways = 0, relations = 0;
          string test;
          XmlReaderSettings readerSettings = new XmlReaderSettings();
@@ -289,6 +290,7 @@ namespace LTSAnalyzer
       /// </summary>
       public void Analyze()
       {
+         if (_options.Verbose) Console.WriteLine("Running analysis...");
          _model.Run(_ways, _nodes);
       }
 
@@ -297,6 +299,7 @@ namespace LTSAnalyzer
       /// </summary>
       public void CreateLevelFiles()
       {
+         if (_options.Verbose) Console.WriteLine("Generating output files...");
          switch (_options.OutputType)
          {
             case OutputType.OSM: CreateLevelFilesOSM(); break;

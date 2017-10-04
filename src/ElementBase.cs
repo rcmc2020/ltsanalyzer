@@ -64,6 +64,11 @@ namespace LTSAnalyzer
          Tags.Add(key, value);
       }
 
+      public bool HasTag(string key)
+      {
+         return _tags != null && _tags.ContainsKey(key);
+      }
+
       /// <summary>
       /// Determines whether the current element has the specified tag with
       /// the specified value.

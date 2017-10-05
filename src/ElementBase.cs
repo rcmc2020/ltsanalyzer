@@ -12,8 +12,6 @@ namespace LTSAnalyzer
    {
       static ElementBase() { }
 
-      bool[] _levelReference;
-
       protected Dictionary<string, string> _tags;
 
       /// <summary>
@@ -32,28 +30,6 @@ namespace LTSAnalyzer
       }
 
       /// <summary>
-      /// Indicates whether the element belongs to the specified level .
-      /// </summary>
-      /// <param name="level">A value from 1 to 4 indicating the level.</param>
-      /// <returns>True if the element belongs to the specified level, else False.</returns>
-      public bool IsLevel(int level)
-      {
-         return (_levelReference == null) ? false : _levelReference[level - 1];
-      }
-
-      /// <summary>
-      /// Marks this element as belonging to the specified level.
-      /// </summary>
-      /// <param name="level">A value from 1 to 4 indicating the level.</param>
-      public void SetLevelReference(int level)
-      {
-         if (_levelReference == null) {
-            _levelReference = new bool[AnalysisModel.LevelCount];
-         }
-         _levelReference[level - 1] = true;
-      }
-
-      /// <summary>
       /// Adds a tag key/value from the current read position.
       /// </summary>
       /// <param name="i_reader"></param>
@@ -64,6 +40,11 @@ namespace LTSAnalyzer
          Tags.Add(key, value);
       }
 
+      /// <summary>
+      /// Determines whether the tag key exists in the element.
+      /// </summary>
+      /// <param name="key"></param>
+      /// <returns></returns>
       public bool HasTag(string key)
       {
          return _tags != null && _tags.ContainsKey(key);

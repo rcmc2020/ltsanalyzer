@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -34,6 +35,8 @@ namespace LTSAnalyzer
       /// </summary>
       public void Load()
       {
+         Stopwatch sw = new Stopwatch();
+         sw.Start();
          if (_options.Verbose) Console.WriteLine("Loading '" + _options.Filename + "'...");
          int notes = 0, meta = 0, bounds = 0, nodes = 0, ways = 0, relations = 0;
          string test;
@@ -78,6 +81,27 @@ namespace LTSAnalyzer
                   }
                }
             }
+         }
+         CleanupNodes();
+         if (_options.Timers) Console.WriteLine("Loading - Elapsed time: " + sw.Elapsed);
+      }
+
+      /// <summary>
+      /// Cleanup the node list to save memory.
+      /// </summary>
+      private void CleanupNodes()
+      {
+         HashSet<string> deletionList = new HashSet<string>();
+         foreach (KeyValuePair<string, Node> kv in _nodes)
+         {
+            if (!kv.Value.IsReferenced)
+            {
+               deletionList.Add(kv.Key);
+            }
+         }
+         foreach (string nodeId in deletionList)
+         {
+            _nodes.Remove(nodeId);
          }
       }
 
@@ -206,7 +230,8 @@ namespace LTSAnalyzer
                   }
                   else if (reader.Name == "nd")
                   {
-                     way.Nodes.Add(reader.GetAttribute("ref"));
+                     string nodeRef = reader.GetAttribute("ref");
+                     way.Nodes.Add(nodeRef);
                   }
                   else
                   {
@@ -223,7 +248,17 @@ namespace LTSAnalyzer
                   }
                }
             }
-            _ways.Add(id, way);
+            // This is a preliminary test to make sure we only add ways that are potentially valid
+            // routes. This could be expanded to further filter the ways but this will typically 
+            // be done in the analysis phase.
+            if (way.Tags.ContainsKey("highway")) 
+            {
+               _ways.Add(id, way);
+               foreach (string nodeRef in way.Nodes) 
+               {
+                  _nodes[nodeRef].AddWay(id);
+               }
+            }
          }
          else
          {
@@ -290,8 +325,11 @@ namespace LTSAnalyzer
       /// </summary>
       public void Analyze()
       {
+         Stopwatch sw = new Stopwatch();
+         sw.Start();
          if (_options.Verbose) Console.WriteLine("Running analysis...");
-         _model.Run(_ways, _nodes);
+         _model.RunAnalysis(_ways, _nodes);
+         if (_options.Timers) Console.WriteLine("Analyze - Elapsed time: " + sw.Elapsed);
       }
 
       /// <summary>
@@ -299,6 +337,8 @@ namespace LTSAnalyzer
       /// </summary>
       public void CreateLevelFiles()
       {
+         Stopwatch sw = new Stopwatch();
+         sw.Start();
          if (_options.Verbose) Console.WriteLine("Generating output files...");
          switch (_options.OutputType)
          {
@@ -307,6 +347,7 @@ namespace LTSAnalyzer
             default:
                throw new Exception("Error: Invalid OutputType.");
          }
+         if (_options.Timers) Console.WriteLine("FileGen - Elapsed time: " + sw.Elapsed);
       }
 
       /// <summary>

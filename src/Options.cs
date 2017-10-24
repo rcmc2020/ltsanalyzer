@@ -21,11 +21,14 @@ namespace LTSAnalyzer
       public string Prefix { get; set; }
       public OutputType OutputType { get; set; }
       public bool Verbose { get; set; }
+      public bool Timers { get; set; }
+
+      public readonly string Description = "OSM Cycling Level of Traffic Stress Analyzer";
 
       public void Usage()
       {
          string name = System.AppDomain.CurrentDomain.FriendlyName;
-         Console.WriteLine("OSM Cycling Stress Analyzer");
+         Console.WriteLine(Description);
          Console.WriteLine("Usage: " + name + " -f filename [-o otype][-p prefix][-v]");
          Console.WriteLine("where:");
          Console.WriteLine(" filename is path to the OSM XML input file.");
@@ -33,6 +36,7 @@ namespace LTSAnalyzer
          Console.WriteLine("          The default is osm.");
          Console.WriteLine(" prefix   is the prefix to be used for all output files.");
          Console.WriteLine("          The default is \"level_\".");
+         Console.WriteLine(" -t       Enables timer output.");
          Console.WriteLine(" -v       Enables verbose output.");
       }
 
@@ -100,6 +104,10 @@ namespace LTSAnalyzer
                   return false;
                }
             }
+            else if (arg == "-t")
+            {
+               Timers = true;
+            }
             else if (arg == "-v")
             {
                Verbose = true;
@@ -112,10 +120,6 @@ namespace LTSAnalyzer
          }
          else
          {
-            if (!Path.IsPathRooted(Filename))
-            {
-               Filename = System.IO.Path.Combine(Directory, Filename);
-            }
             if (!File.Exists(Filename))
             {
                Console.WriteLine("Error: File '" + Filename + "' does not exist.");

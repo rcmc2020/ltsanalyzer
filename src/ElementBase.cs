@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 
 namespace LTSAnalyzer
@@ -60,6 +61,27 @@ namespace LTSAnalyzer
       public bool HasTag(string key, string value)
       {
          return _tags != null && _tags.ContainsKey(key) && _tags[key] == value;
+      }
+
+      /// <summary>
+      /// Partial string search in tags.
+      /// </summary>
+      /// <param name="key">The starting string of the tag.</param>
+      /// <returns>True if there are 1 or more tags starting with the specified string.</returns>
+      public bool TagStartsWith(string key)
+      {
+         if (_tags == null) return false;
+         return _tags.Keys.Where(k => k.StartsWith(key)).ToList().Count > 0;
+      }
+
+      /// <summary>
+      /// Returns a list of all tags that have a namespace.
+      /// </summary>
+      /// <returns>A list of all strings that contain</returns>
+      public List<string> TagsWithNamespace()
+      {
+         if (_tags == null) return new List<string>();
+         return _tags.Keys.Where(k => k.Contains(':')).ToList();
       }
    }
 }

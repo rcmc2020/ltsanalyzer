@@ -12,6 +12,11 @@ namespace LTSAnalyzer
 
       public string Lon { get; set; }
 
+      /// <summary>
+      /// A list of all the ways to which this node belongs.
+      /// </summary>
+      List<string> _ways;
+
       public Node(string lat, string lon)
       {
          Lat = lat;
@@ -39,6 +44,33 @@ namespace LTSAnalyzer
             _levelReference = new bool[AnalysisModel.LevelCount];
          }
          _levelReference[level - 1] = true;
+      }
+
+      /// <summary>
+      /// Add a reference to a new way to the list of ways.
+      /// </summary>
+      /// <param name="wayId"></param>
+      public void AddWay(string wayId)
+      {
+         if (_ways == null)
+         {
+            _ways = new List<string>();
+         }
+         if (!_ways.Contains(wayId))
+         {
+            _ways.Add(wayId);
+         }
+      }
+
+      /// <summary>
+      /// Returns True if the node has been referenced in a way.
+      /// </summary>
+      public bool IsReferenced
+      {
+         get
+         {
+            return _ways != null;
+         }
       }
    }
 }

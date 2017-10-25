@@ -45,8 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisModel.cs" />
+    <Compile Include="StressModel.cs" />
     <Compile Include="Data.cs" />
+    <Compile Include="IslandModel.cs" />
     <Compile Include="LTSAnalyzer.cs" />
     <Compile Include="ElementBase.cs" />
     <Compile Include="Member.cs" />

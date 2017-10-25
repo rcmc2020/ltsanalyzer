@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LTSAnalyzer
 {
-   class Node : ElementBase
+   public class Node : ElementBase
    {
       bool[] _levelReference;
 
@@ -16,6 +16,17 @@ namespace LTSAnalyzer
       /// A list of all the ways to which this node belongs.
       /// </summary>
       List<string> _ways;
+
+      /// <summary>
+      /// This is a list of the id of ways that reference this node.
+      /// </summary>
+      public List<string> Ways
+      {
+         get
+         {
+            return _ways;
+         }
+      }
 
       public Node(string lat, string lon)
       {
@@ -41,7 +52,7 @@ namespace LTSAnalyzer
       {
          if (_levelReference == null)
          {
-            _levelReference = new bool[AnalysisModel.LevelCount];
+            _levelReference = new bool[StressModel.LevelCount];
          }
          _levelReference[level - 1] = true;
       }

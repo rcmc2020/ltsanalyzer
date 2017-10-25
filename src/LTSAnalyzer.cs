@@ -9,7 +9,8 @@ namespace LTSAnalyzer
 {
    class LTSAnalyzer
    {
-      AnalysisModel _model;
+      StressModel _stressModel;
+      IslandModel _islandModel;
       Dictionary<string, Node> _nodes;
       Dictionary<string, Way> _ways;
       Dictionary<string, Relation> _relations;
@@ -22,12 +23,12 @@ namespace LTSAnalyzer
 
       public LTSAnalyzer(Options options)
       {
-         _model = new AnalysisModel();
-         _model.Initialize();
          _nodes = new Dictionary<string, Node>();
          _ways = new Dictionary<string, Way>();
          _relations = new Dictionary<string, Relation>();
          _options = options;
+         _stressModel = new StressModel();
+         _islandModel = new IslandModel();
       }
 
       /// <summary>
@@ -323,13 +324,27 @@ namespace LTSAnalyzer
       /// <summary>
       /// Classifies each way into its proper level and marks the nodes for that level.
       /// </summary>
-      public void Analyze()
+      public void AnalyzeStressModel()
       {
          Stopwatch sw = new Stopwatch();
          sw.Start();
-         if (_options.Verbose) Console.WriteLine("Running analysis...");
-         _model.RunAnalysis(_ways, _nodes);
-         if (_options.Timers) Console.WriteLine("Analyze - Elapsed time: " + sw.Elapsed);
+         _stressModel.Initialize(_ways, _nodes);
+         if (_options.Verbose) Console.WriteLine("Running stress analysis...");
+         _stressModel.RunAnalysis();
+         if (_options.Timers) Console.WriteLine("Stress  - Elapsed time: " + sw.Elapsed);
+      }
+
+      /// <summary>
+      /// Classifies each way into its proper level and marks the nodes for that level.
+      /// </summary>
+      public void AnalyzeIslandModel()
+      {
+         Stopwatch sw = new Stopwatch();
+         sw.Start();
+         _islandModel.Initialize(_ways, _nodes);
+         if (_options.Verbose) Console.WriteLine("Running island analysis...");
+         _islandModel.RunAnalysis();
+         if (_options.Timers) Console.WriteLine("Islands - Elapsed time: " + sw.Elapsed);
       }
 
       /// <summary>
@@ -367,7 +382,7 @@ namespace LTSAnalyzer
       {
          string path = _options.Directory;
          string prefix = _options.Prefix;
-         for (int level = 1; level <= AnalysisModel.LevelCount; level++)
+         for (int level = 1; level <= StressModel.LevelCount; level++)
          {
             string filename = Path.Combine(path, prefix + level.ToString() + ".json");
             if (File.Exists(filename))
@@ -421,7 +436,7 @@ namespace LTSAnalyzer
          string prefix = _options.Prefix;
          XmlWriterSettings xs = new XmlWriterSettings();
          xs.Indent = true;
-         for (int level = 1; level <= AnalysisModel.LevelCount; level++)
+         for (int level = 1; level <= StressModel.LevelCount; level++)
          {
             string filename = Path.Combine(path, prefix + level.ToString() + ".osm");
             if (File.Exists(filename))

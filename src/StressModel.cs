@@ -6,8 +6,12 @@ using System.Text;
 
 namespace LTSAnalyzer
 {
-   class AnalysisModel
+   class StressModel
    {
+      Dictionary<string, Way> _ways;
+
+      Dictionary<string, Node> _nodes;
+
       /// <summary>
       /// This is used for testing.
       /// </summary>
@@ -19,17 +23,19 @@ namespace LTSAnalyzer
       /// </summary>
       static int _levels;
 
-      static AnalysisModel()
+      static StressModel()
       {
          _levels = -1;
       }
 
-      public AnalysisModel() {}
+      public StressModel() {}
 
-      public void Initialize()
+      public void Initialize(Dictionary<string, Way> ways, Dictionary<string, Node> nodes)
       {
          // If we load the analysis model from a definition file, we 
          // can initialize the number of levels value here.
+         _nodes = nodes;
+         _ways = ways;
          _levels = 4;
          _tagCollection = new Dictionary<string, int>();
 
@@ -188,10 +194,10 @@ namespace LTSAnalyzer
          return false;
       }
 
-      public void RunAnalysis(Dictionary<string, Way> ways, Dictionary<string, Node> nodes)
+      public void RunAnalysis()
       {
          int level;
-         foreach (KeyValuePair<string, Way> kv in ways)
+         foreach (KeyValuePair<string, Way> kv in _ways)
          {
             string id = kv.Key;
             Way way = kv.Value;
@@ -207,7 +213,7 @@ namespace LTSAnalyzer
             {
                foreach (string node in way.Nodes)
                {
-                  nodes[node].SetLevelReference(level);
+                  _nodes[node].SetLevelReference(level);
                }
             }
          }

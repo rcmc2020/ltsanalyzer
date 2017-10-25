@@ -9,7 +9,7 @@ namespace LTSAnalyzer
    /// Base class for the Relation, Way, and Node elements providing basic tag
    /// handling services.
    /// </summary>
-   abstract class ElementBase
+   public abstract class ElementBase
    {
       static ElementBase() { }
 

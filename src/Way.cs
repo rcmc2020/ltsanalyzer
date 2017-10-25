@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LTSAnalyzer
 {
-   class Way : ElementBase
+   public class Way : ElementBase
    {
       /// <summary>
       /// A list of all nodes associated with this way.
@@ -30,7 +30,7 @@ namespace LTSAnalyzer
       /// True if there is parking on the way.
       /// </summary>
       public bool IsParkingPresent { get; set; }
-
+      
       /// <summary>
       /// Returns the list of all nodes associated with this way.
       /// </summary>

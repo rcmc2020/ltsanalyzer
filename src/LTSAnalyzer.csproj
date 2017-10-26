@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PolygonizeWays.cs" />
     <Compile Include="StressModel.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="IslandModel.cs" />

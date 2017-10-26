@@ -315,6 +315,16 @@ namespace LTSAnalyzer
          {
             dist[kv.Value.Count]++;
          }
+         PolygonizeWays pw = new PolygonizeWays();
+         pw.Initialize(_ways, _nodes);
+         foreach (KeyValuePair<int, List<string>> kv in islands)
+         {
+            // FIXME: Something small for testing...
+            if (kv.Value.Count == 5)
+            {
+               pw.ProcessWays(kv.Value);
+            }
+         }
       }
 
       private string NextNodeId()

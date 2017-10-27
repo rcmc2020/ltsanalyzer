@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,8 +9,8 @@ namespace LTSAnalyzer
 
    public class LatLong
    {
-      double Lat { get; set; }
-      double Long { get; set; }
+      public double Lat { get; set; }
+      public double Long { get; set; }
 
       public LatLong(double lat, double lon)
       {
@@ -33,7 +34,8 @@ namespace LTSAnalyzer
 
 
    // Given a set of connected lines, find the smallest polygon that 
-   // encloses all lines.
+   // encloses all lines. 
+   // FIXME: The current implementation does not allow for donuts.
    public class PolygonizeWays
    {
       Dictionary<string, IMWay> _ways;
@@ -71,73 +73,114 @@ namespace LTSAnalyzer
          }
       }
 
+      /// <summary>
+      /// This walks around the outside of the nodes to create a polygon.
+      /// </summary>
+      /// <param name="wayset"></param>
+      /// <returns></returns>
       public List<LatLong> ProcessWays(List<string> wayset)
       {
          double angle;
-         PWNode pwnode;
-         PWNode refpwnode;
+         double nextAngle;
+         string nextNodeId;
+         string prevNodeId = "";
+         string firstNodeId = "";
+         PWNode currentNode;
+         PWNode referencedNode;
          List<LatLong> result = new List<LatLong>();
-         List<string> pwnodeList = new List<string>();
          InitializeNodeCache(wayset);
          string startNodeId = StartingPoint;
-         string previousNodeId = "";
-         double previousMaxAngle = 0.0;
-         string nodeId = startNodeId;
+         string currentNodeId = startNodeId;
          double refAngle = 0.0;
-         double maxAngle = 360.0;
-         throw new NotImplementedException("Untested. Needs cleanup. Not final form.");
-         while (!string.IsNullOrEmpty(nodeId)) {
-            // Now we start scanning all points that are connected to this node in 
-            // a clockwise direction.
-            pwnode = _nodeCache[nodeId];
-            result.Add(new LatLong(pwnode.Lat, pwnode.Lon));
+         double minAngle = 360.0;
 
+         Dictionary<string, int> counts = new Dictionary<string, int>();
+         // StringBuilder debug = new StringBuilder();
+         // debug.Append("<html><head></head><body>");
+         // int debugCount = 0;
+
+         // We assume the first node as the starting point. 
+         currentNode = _nodeCache[currentNodeId];
+         result.Add(new LatLong(currentNode.Lat, currentNode.Lon));
+
+         bool firstPass = true;
+         while (!string.IsNullOrEmpty(currentNodeId))
+         {
+            nextNodeId = "";
+            minAngle = 360.0;
+            nextAngle = 0.0;
             // We need to check the list of all nodes that are connected to this node.
-            List<string> nodeIds = GetReferencedNodes(nodeId);
-            nodeId = "";
+            List<string> nodeIds = GetReferencedNodes(currentNodeId);
             foreach (string refNodeId in nodeIds)
             {
-               if (refNodeId != previousNodeId)
+               if (_nodeCache.ContainsKey(refNodeId))
                {
-                  refpwnode = _nodeCache[refNodeId];
-                  double o = refpwnode.Lat - pwnode.Lat;
-                  double a = refpwnode.Lon - pwnode.Lon;
+                  referencedNode = _nodeCache[refNodeId];
+                  double o = referencedNode.Lat - currentNode.Lat;
+                  double a = referencedNode.Lon - currentNode.Lon;
                   double radians = Math.Atan2(o, a);
                   angle = (radians >= 0) ? 360 - radians * (180.0 / Math.PI) : -(radians * (180.0 / Math.PI));
                   // We are looking for the next node that occurs in a clockwise angle from 
                   // our base angle on the pwnode. Note that it may return to the last node 
                   // we were at.
                   double effectiveAngle = ((360 - refAngle) + angle + 360) % 360;
-                  if (effectiveAngle < maxAngle)
+                  // Is this the closest node within our verification arc?
+                  if (refNodeId == prevNodeId)
                   {
-                     maxAngle = angle;
-                     nodeId = refNodeId;
+                     if (nextNodeId == "")
+                     {
+                        // The only condition where we are allowed to refer right back to 
+                        // the previous node is when it is the only one.
+                        nextNodeId = refNodeId;
+                        minAngle = 360.0;
+                        nextAngle = angle;
+                     }
                   }
-
-                  // We flip the angle around so that we start from the view
-                  // of the last point on the next round.
-                  refAngle = (maxAngle + 180.0) % 360.0;
+                  else if (effectiveAngle < minAngle)
+                  {
+                     minAngle = effectiveAngle;
+                     nextNodeId = refNodeId;
+                     nextAngle = angle;
+                  }
                }
             }
-            previousNodeId = nodeId;
-            previousMaxAngle = maxAngle;
-            if (nodeId == "")
-            {
-               nodeId = previousNodeId;
-               refAngle = (maxAngle + 180.0) % 360.0;
+            if (firstPass) {
+               // Our end condition is when we have encountered the firstNode again after the startNode.
+               // This takes care of the case where another way occurs off the starting node.
+               firstPass = false;
+               firstNodeId = nextNodeId;
             }
-            else if (nodeId == startNodeId)
+            else if (currentNodeId == startNodeId && nextNodeId == firstNodeId) 
             {
-               // We've come full circle.
-               pwnode = _nodeCache[nodeId];
-               result.Add(new LatLong(pwnode.Lat, pwnode.Lon));
-               nodeId = "";
+               // We're done.
+               break;
             }
-         }
+            if (counts.ContainsKey(nextNodeId))
+            {
+               counts[nextNodeId]++;
+            }
+            else
+            {
+               counts.Add(nextNodeId, 1);
+            }
 
+            // debug.Append(@"<a href='https://www.openstreetmap.org/node/" + nextNodeId + "'>Node: " + nextNodeId + " (" + counts[nextNodeId].ToString() + ")</a><br>");
+            prevNodeId = currentNodeId;
+            currentNodeId = nextNodeId;
+            refAngle = (nextAngle + 180.0) % 360.0;
+            currentNode = _nodeCache[currentNodeId];
+            result.Add(new LatLong(currentNode.Lat, currentNode.Lon));
+            if (result.Count > 100000) throw new Exception("Probably in an endless loop. Aborting...");
+         }
+         // using (StreamWriter file = new StreamWriter(@"h:\temp.html")) file.Write(debug.ToString());
          return result;
       }
 
+      /// <summary>
+      /// Returns a list of all unique nodes referenced by the specified nodeId.
+      /// </summary>
+      /// <param name="nodeId"></param>
+      /// <returns></returns>
       private List<string> GetReferencedNodes(string nodeId) 
       {
          List<string> result = new List<string>();
@@ -168,7 +211,8 @@ namespace LTSAnalyzer
       }
 
       /// <summary>
-      /// Find the starting point of the entire set.
+      /// Find the starting point of the entire set. This is defined as the eastern-most 
+      /// point of any of the ways.
       /// </summary>
       private string StartingPoint
       {

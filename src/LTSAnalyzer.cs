@@ -436,6 +436,7 @@ namespace LTSAnalyzer
          string prefix = _options.Prefix;
          XmlWriterSettings xs = new XmlWriterSettings();
          xs.Indent = true;
+         
          for (int level = 1; level <= StressModel.LevelCount; level++)
          {
             string filename = Path.Combine(path, prefix + level.ToString() + ".osm");
@@ -501,5 +502,66 @@ namespace LTSAnalyzer
             }
          }
       }
+
+      /// <summary>
+      /// Generates the GeoJSON output files.
+      /// </summary>
+      public void CreateIslandFilesGeoJson()
+      {
+         string path = _options.Directory;
+         string prefix = _options.Prefix;
+
+         // FIXME: output path
+         string filename = Path.Combine(path, @"islands.json");
+
+         // FIXME: temporary kludge for map coloring.
+         int color = 0;
+         string [] colors = new string[] { "#COCOCO", "#808080", "#FF0000", "#800000", 
+                                           "#FFFF00", "#808000", "#00FF00", "#008000",
+                                           "#00FFFF", "#008080", "#0000FF", "#000080",
+                                           "#FF00FF", "#800080" };
+         
+         if (File.Exists(filename)) File.Delete(filename);
+         using (StreamWriter writer = new StreamWriter(filename, false))
+         {
+            writer.Write("{\"type\":\"FeatureCollection\",\"features\":[");
+            bool fsep = false;
+            foreach (Island island in _islandModel.Islands)
+            {
+               StringBuilder sb = new StringBuilder();
+               if (fsep) sb.Append(",");
+               fsep = true;
+               sb.Append("{\"type\":\"Feature\",");
+               sb.Append("\"geometry\":{\"type\":\"Polygon\",");
+               {
+                  bool csep = false;
+                  sb.Append("\"coordinates\":[[");
+                  foreach (LatLong ll in island.Coordinates)
+                  {
+                     if (csep) sb.Append(",");
+                     csep = true;
+                     sb.Append("[");
+                     sb.Append(ll.Long.ToString());
+                     sb.Append(",");
+                     sb.Append(ll.Lat.ToString());
+                     sb.Append("]");
+                  }
+                  sb.Append("]]");
+               }
+               sb.Append("},");
+               sb.Append("\"properties\":{\"islandid\":\"");
+               sb.Append(island.IslandNumber.ToString());
+               sb.Append("\",\"color\":\"");
+               sb.Append(colors[color++ % colors.Length]);
+               sb.Append("\"");
+               // sb.Append(",\"opacity\":0.5");
+               sb.Append("}");
+               sb.Append("}");
+               writer.Write(sb.ToString());
+            }
+            writer.Write("]}");
+         }
+      }
+
    }
 }

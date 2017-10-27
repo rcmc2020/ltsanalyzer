@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -93,6 +94,16 @@ namespace LTSAnalyzer
       }
    }
 
+   public class Island
+   {
+      public int IslandNumber { get; set; }
+
+      public List<string> Ways { get; set; }
+
+      public List<LatLong> Coordinates { get; set; }
+
+   }
+
    class IslandModel
    {
       int _maxStressLevel;
@@ -100,6 +111,8 @@ namespace LTSAnalyzer
       Dictionary<string, IMWay> _ways;
 
       Dictionary<string, IMNode> _nodes;
+
+      public List<Island> Islands { get; set; }
 
       int _islandCount;
 
@@ -139,6 +152,7 @@ namespace LTSAnalyzer
             if (idNum > _maxNode) _maxNode = idNum;
             _nodes.Add(kv.Key, new IMNode(kv.Value));
          }
+         Islands = new List<Island>();
       }
 
       public void RunAnalysis()
@@ -298,10 +312,12 @@ namespace LTSAnalyzer
                }
                else
                {
-                  islands.Add(way.Island, new List<string>{wayId});
+                  islands.Add(way.Island, new List<string> { wayId });
                }
             }
          }
+
+         // Some statistics...
          int max = 0;
          foreach (KeyValuePair<int, List<string>> kv in islands)
          {
@@ -315,14 +331,19 @@ namespace LTSAnalyzer
          {
             dist[kv.Value.Count]++;
          }
+
          PolygonizeWays pw = new PolygonizeWays();
          pw.Initialize(_ways, _nodes);
          foreach (KeyValuePair<int, List<string>> kv in islands)
          {
             // FIXME: Something small for testing...
-            if (kv.Value.Count == 5)
+            if (kv.Value.Count > 10)
             {
-               pw.ProcessWays(kv.Value);
+               Island island = new Island();
+               island.IslandNumber = kv.Key;
+               island.Ways = kv.Value;
+               island.Coordinates = pw.ProcessWays(kv.Value);
+               Islands.Add(island);
             }
          }
       }

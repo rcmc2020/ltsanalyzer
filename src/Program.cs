@@ -22,6 +22,7 @@ namespace LTSAnalyzer
             osm.AnalyzeStressModel();
             osm.AnalyzeIslandModel();
             osm.CreateLevelFiles();
+            osm.CreateIslandFilesGeoJson();
          }
          sw.Stop();
          if (options.Timers || options.Verbose) Console.WriteLine("TOTAL -   Elapsed time: " + sw.Elapsed);

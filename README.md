@@ -2,14 +2,17 @@
 
 This is a console application that takes an OSM file and performs an analysis on the streets based on the information stored in their tags. The format is as follows:
 
- `ltsanalyzer -f filename [-o outputtype][-p fileprefix]`
+ `ltsanalyzer -f filename -d outputpath [-o outputtype][-p prefix]`
  
  where:
  
  * filename   is the path to an OSM file to be processed.
+ * outputpath is the directory where the output files will be created.
  * outputtype is the type of the file to be generated.  It must either be 'osm' or 'geojson'.
  * prefix     is the prefix to be appended to the start of the filename. 
- 
+  
+See the usage output for an up-to-date list of options.
+
  ## Example ##
  
  `ltsanalyzer -f c:\data\myosmfile.osm -o geojson -p lts_`

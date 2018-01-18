@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="StressModel.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="LTSAnalyzer.cs" />
     <Compile Include="ElementBase.cs" />
     <Compile Include="Member.cs" />

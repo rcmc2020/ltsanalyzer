@@ -15,8 +15,8 @@ See the usage output for an up-to-date list of options.
 
  ## Example ##
  
- `ltsanalyzer -f c:\data\myosmfile.osm -o geojson -p lts_`
+ `ltsanalyzer -f ~\maps\myosmfile.osm -d \var\www\stressmap\data -o geojson -p level_`
  
- will analyze the specified OSM file and produce 4 output files in geojson format. The files will be named lts_1.json, lts_2.json, lts_3.json and lts_4.json and each will contain the streets for the corresponding LTS level (1-4).
+ will analyze the specified OSM file and produce 4 output files in geojson format. The files will be named level_1.json, level_2.json, level_3.json and level_4.json and each will contain the streets for the corresponding LTS level (1-4).
  
  If you are using [stressmap](https://github.com/rcmc2020/stressmap) to display the files, you should generate the files as geojson with the default value for the prefix "level_". This data should be placed in the app/data directory. For more information, see the documentation for stressmap.

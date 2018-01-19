@@ -13,11 +13,6 @@ namespace LTSAnalyzer {
 		Dictionary<string, Node> _nodes;
 
 		/// <summary>
-		/// This is used for testing.
-		/// </summary>
-		Dictionary<string, int> _tagCollection;
-
-		/// <summary>
 		/// The number of levels in the analysis. Currently this value is fixed but 
 		/// in future versions, it may be loaded with the analysis definition.
 		/// </summary>
@@ -35,8 +30,6 @@ namespace LTSAnalyzer {
 			_nodes = nodes;
 			_ways = ways;
 			_levels = 4;
-			_tagCollection = new Dictionary<string, int>();
-
 		}
 
 		public static int LevelCount {
@@ -110,12 +103,6 @@ namespace LTSAnalyzer {
 		private bool ParkingPresent(string id, Way way) {
 			if (way.HasTag("parking")) {
 				string newtag = "parking=" + way.Tags["parking"];
-				if (!_tagCollection.ContainsKey(newtag)) {
-					_tagCollection.Add(newtag, 1);
-				}
-				else {
-					_tagCollection[newtag]++;
-				}
 				switch (way.Tags["parking"]) {
 					case "yes": return true;
 					case "no": return false;
@@ -143,12 +130,6 @@ namespace LTSAnalyzer {
 							case "parking:lane:right":
 							default:
 								string newtag = k + "=" + v;
-								if (!_tagCollection.ContainsKey(newtag)) {
-									_tagCollection.Add(newtag, 1);
-								}
-								else {
-									_tagCollection[newtag]++;
-								}
 								break;
 						}
 					}
@@ -173,18 +154,6 @@ namespace LTSAnalyzer {
 				if (way.Level > 0) {
 					foreach (string node in way.Nodes) {
 						_nodes[node].SetLevelReference(level);
-					}
-				}
-			}
-			if (_tagCollection.Count > 0) {
-				// FIXME: This collection is used during testing to gather information on tags.
-				// It should be removed before final deployment.
-				using (StreamWriter writer = new StreamWriter(@"tags.txt", false)) {
-					foreach (KeyValuePair<string, int> kv in _tagCollection) {
-						writer.Write(kv.Key);
-						writer.Write(" : ");
-						writer.Write(kv.Value.ToString());
-						writer.Write("\r\n");
 					}
 				}
 			}

@@ -144,13 +144,10 @@ namespace LTSAnalyzer {
 				string id = kv.Key;
 				Way way = kv.Value;
 
-				way.MaxSpeed = MaxSpeed(way);
-				way.Lanes = Lanes(way);
-				way.IsParkingPresent = ParkingPresent(id, way);
-
 				level = EvaluateWay(id, way);
 				way.Level = level;
-				// This marks all nodes in our file with being referenced in that level.
+				// This marks the used nodes in our file with being referenced in that level.
+				// We use this to divide the file up for OSM output.
 				if (way.Level > 0) {
 					foreach (string node in way.Nodes) {
 						_nodes[node].SetLevelReference(level);
@@ -289,7 +286,7 @@ namespace LTSAnalyzer {
 			return lts;
 		}
 
-		private bool BikingPermitted(string id, Way way) {
+		public static bool BikingPermitted(string id, Way way) {
 			if (way.HasTag("highway") || way.HasTag("bicycle")) {
 				if (way.HasTag("bicycle", "no")) {
 					return false;

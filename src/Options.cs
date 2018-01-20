@@ -33,7 +33,7 @@ namespace LTSAnalyzer {
 			Console.WriteLine(" -d  dir is the location where all files will be created.");
 			Console.WriteLine(" -f  filename  is path to the OSM XML input file.");
 			Console.WriteLine(" -o  otype is the output file type. It is either \"osm\" or \"geojson\".");
-			Console.WriteLine("     The default is osm.");
+			Console.WriteLine("     The default is geojson.");
 			Console.WriteLine(" -p  prefix is the prefix to be used for all output files.");
 			Console.WriteLine("     The default is \"level_\".");
 			Console.WriteLine(" -t  Enables timer output.");

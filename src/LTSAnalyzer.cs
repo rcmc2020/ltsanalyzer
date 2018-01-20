@@ -11,6 +11,7 @@ namespace LTSAnalyzer {
 		Dictionary<string, Node> _nodes;
 		Dictionary<string, Way> _ways;
 		Dictionary<string, Relation> _relations;
+		HashSet<string> _usedNodes;
 		Options _options;
 		string _osmBase;
 		string _minLat;
@@ -24,12 +25,13 @@ namespace LTSAnalyzer {
 			_relations = new Dictionary<string, Relation>();
 			_options = options;
 			_stressModel = new StressModel();
+			_usedNodes = new HashSet<string>();
 		}
 
 		/// <summary>
 		/// Processes the OSM file and loads the required elements.
 		/// </summary>
-		public void Load() {
+		public void Load1() {
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 			if (_options.Verbose) Console.WriteLine("Loading '" + _options.Filename + "'...");
@@ -57,11 +59,11 @@ namespace LTSAnalyzer {
 								break;
 							case "node":
 								nodes++;
-								ProcessNodes(reader);
+								ProcessNodes1(reader);
 								break;
 							case "way":
 								ways++;
-								ProcessWays(reader);
+								ProcessWays1(reader);
 								break;
 							case "relation":
 								relations++;
@@ -73,23 +75,57 @@ namespace LTSAnalyzer {
 					}
 				}
 			}
-			CleanupNodes();
-			if (_options.Timers) Console.WriteLine("Loading - Elapsed time: " + sw.Elapsed);
+			if (_options.Timers) Console.WriteLine("Loading Pass 1 - Elapsed time: " + sw.Elapsed);
 		}
 
 		/// <summary>
-		/// Cleanup the node list to save memory.
+		/// Processes the OSM file and loads the required elements.
 		/// </summary>
-		private void CleanupNodes() {
-			HashSet<string> deletionList = new HashSet<string>();
-			foreach (KeyValuePair<string, Node> kv in _nodes) {
-				if (!kv.Value.IsReferenced) {
-					deletionList.Add(kv.Key);
+		public void Load2() {
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+			if (_options.Verbose) Console.WriteLine("Loading '" + _options.Filename + "'...");
+			int notes = 0, meta = 0, bounds = 0, nodes = 0, ways = 0, relations = 0;
+			string test;
+			XmlReaderSettings readerSettings = new XmlReaderSettings();
+			readerSettings.IgnoreWhitespace = true;
+			using (XmlReader reader = XmlReader.Create(_options.Filename, readerSettings)) {
+				reader.MoveToContent();
+				if (reader.IsStartElement("osm")) {
+					reader.Read();
+					while (reader.IsStartElement()) {
+						switch (reader.Name) {
+							case "note":
+								notes++;
+								test = (string)reader.ReadElementContentAs(typeof(System.String), null);
+								break;
+							case "meta":
+								meta++;
+								ProcessMeta(reader);
+								break;
+							case "bounds":
+								bounds++;
+								ProcessBounds(reader);
+								break;
+							case "node":
+								nodes++;
+								ProcessNodes2(reader);
+								break;
+							case "way":
+								ways++;
+								ProcessWays2(reader);
+								break;
+							case "relation":
+								relations++;
+								ProcessRelations(reader);
+								break;
+							default:
+								throw new Exception("Unknown element type: " + reader.Name);
+						}
+					}
 				}
 			}
-			foreach (string nodeId in deletionList) {
-				_nodes.Remove(nodeId);
-			}
+			if (_options.Timers) Console.WriteLine("Loading Pass 2 - Elapsed time: " + sw.Elapsed);
 		}
 
 		/// <summary>
@@ -138,8 +174,38 @@ namespace LTSAnalyzer {
 		/// <summary>
 		/// Processes a node element at the current read position in the reader.
 		/// Exits with the reader positioned at the next sibling element.
+		/// </summary>
 		/// <param name="i_reader"></param>
-		private void ProcessNodes(XmlReader reader) {
+		private void ProcessNodes1(XmlReader reader) {
+			if (reader.IsStartElement("node")) {
+				if (reader.IsEmptyElement) {
+					reader.Read();
+				}
+				else {
+					while (reader.Read()) {
+						if (reader.Name != "tag") {
+							if (reader.NodeType == XmlNodeType.EndElement) {
+								reader.Read();
+								break;
+							}
+							else {
+								throw new Exception("Unexpected element: " + reader.ReadOuterXml());
+							}
+						}
+					}
+				}
+			}
+			else {
+				throw new Exception("Unexpected node: " + reader.Name);
+			}
+		}
+
+		/// <summary>
+		/// Processes a node element at the current read position in the reader.
+		/// Exits with the reader positioned at the next sibling element.
+		/// </summary>
+		/// <param name="i_reader"></param>
+		private void ProcessNodes2(XmlReader reader) {
 			if (reader.IsStartElement("node")) {
 				string id = reader.GetAttribute("id");
 				string lat = reader.GetAttribute("lat");
@@ -164,7 +230,9 @@ namespace LTSAnalyzer {
 						}
 					}
 				}
-				_nodes.Add(id, node);
+				if (_usedNodes.Contains(id)) {
+					_nodes.Add(id, node);
+				}
 			}
 			else {
 				throw new Exception("Unexpected node: " + reader.Name);
@@ -176,7 +244,7 @@ namespace LTSAnalyzer {
 		/// Exits with the reader positioned at the next sibling element.
 		/// </summary>
 		/// <param name="i_reader">An XmlReader object with the read position on a way element.</param>
-		private void ProcessWays(XmlReader reader) {
+		private void ProcessWays1(XmlReader reader) {
 			if (reader.IsStartElement("way")) {
 				Way way = new Way();
 				string id = reader.GetAttribute("id");
@@ -208,10 +276,47 @@ namespace LTSAnalyzer {
 				// This is a preliminary test to make sure we only add ways that are potentially valid
 				// routes. This could be expanded to further filter the ways but this will typically 
 				// be done in the analysis phase.
-				if (way.Tags.ContainsKey("highway")) {
+				if (StressModel.BikingPermitted(id, way)) {
 					_ways.Add(id, way);
 					foreach (string nodeRef in way.Nodes) {
-						_nodes[nodeRef].AddWay(id);
+						if (!_usedNodes.Contains(nodeRef)) {
+							_usedNodes.Add(nodeRef);
+						}
+					}
+				}
+			}
+			else {
+				throw new Exception("Unexpected node: " + reader.Name);
+			}
+		}
+
+		/// <summary>
+		/// Processes a way element at the current read position in the reader.
+		/// Exits with the reader positioned at the next sibling element.
+		/// </summary>
+		/// <param name="i_reader">An XmlReader object with the read position on a way element.</param>
+		private void ProcessWays2(XmlReader reader) {
+			if (reader.IsStartElement("way")) {
+				if (reader.IsEmptyElement) {
+					// Next node.
+					reader.Read();
+				}
+				else {
+					while (reader.Read()) {
+						if (reader.Name == "tag") {
+						}
+						else if (reader.Name == "nd") {
+						}
+						else {
+							if (reader.NodeType == XmlNodeType.EndElement) {
+								reader.Read();
+								break;
+							}
+							else {
+								throw new Exception("Unexpected element: " + reader.ReadOuterXml());
+							}
+
+						}
 					}
 				}
 			}
@@ -225,24 +330,15 @@ namespace LTSAnalyzer {
 		/// </summary>
 		/// <param name="i_reader"></param>
 		private void ProcessRelations(XmlReader i_reader) {
-			string type, nref, role;
 			if (i_reader.IsStartElement("relation")) {
-				Relation relation = new Relation();
-				string id = i_reader.GetAttribute("id");
 				if (i_reader.IsEmptyElement) {
-					// Next relation.
 					i_reader.Read();
 				}
 				else {
 					while (i_reader.Read()) {
 						if (i_reader.Name == "tag") {
-							relation.AddTag(i_reader);
 						}
 						else if (i_reader.Name == "member") {
-							type = i_reader.GetAttribute("type");
-							nref = i_reader.GetAttribute("ref");
-							role = i_reader.GetAttribute("role");
-							relation.Members.Add(new Member(type, nref, role));
 						}
 						else {
 							if (i_reader.NodeType == XmlNodeType.EndElement) {
@@ -256,7 +352,6 @@ namespace LTSAnalyzer {
 						}
 					}
 				}
-				_relations.Add(id, relation);
 			}
 			else {
 				throw new Exception("Unexpected node: " + i_reader.Name);
@@ -287,7 +382,7 @@ namespace LTSAnalyzer {
 				case OutputType.GeoJSON: CreateLevelFilesGeoJson(); break;
 				default:
 					throw new Exception("Error: Invalid OutputType.");
-			}
+			} 
 			if (_options.Timers) Console.WriteLine("FileGen - Elapsed time: " + sw.Elapsed);
 		}
 
@@ -345,7 +440,7 @@ namespace LTSAnalyzer {
 			}
 		}
 
-		/// <summary>
+		// <summary>
 		/// Generates the OSM output files.
 		/// </summary>
 		public void CreateLevelFilesOSM() {
@@ -411,6 +506,5 @@ namespace LTSAnalyzer {
 				}
 			}
 		}
-
 	}
 }

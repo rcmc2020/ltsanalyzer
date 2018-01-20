@@ -14,7 +14,8 @@ namespace LTSAnalyzer {
 			if (options.Load(args)) {
 				if (options.Verbose) Console.WriteLine(options.Description);
 				LTSAnalyzer osm = new LTSAnalyzer(options);
-				osm.Load();
+				osm.Load1();
+				osm.Load2();
 				osm.AnalyzeStressModel();
 				osm.CreateLevelFiles();
 			}

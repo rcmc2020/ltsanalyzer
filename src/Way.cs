@@ -15,21 +15,6 @@ namespace LTSAnalyzer {
 		public int Level { get; set; }
 
 		/// <summary>
-		/// The calculated maximum speed of the way.
-		/// </summary>
-		public int MaxSpeed { get; set; }
-
-		/// <summary>
-		/// The calculated number of lanes in the way.
-		/// </summary>
-		public int Lanes { get; set; }
-
-		/// <summary>
-		/// True if there is parking on the way.
-		/// </summary>
-		public bool IsParkingPresent { get; set; }
-
-		/// <summary>
 		/// Returns the list of all nodes associated with this way.
 		/// </summary>
 		public List<string> Nodes {

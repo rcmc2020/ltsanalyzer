@@ -318,6 +318,11 @@ namespace LTSAnalyzer {
 			if (way.HasTag("highway", "path") || way.HasTag("highway", "footway") || way.HasTag("highway", "cycleway")) {
 				return true;
 			}
+			if (way.HasTag("highway", "construction")) {
+				if (way.HasTag("construction", "path") || way.HasTag("construction", "footway") || way.HasTag("construction", "cycleway")) {
+					return true;
+				}
+			}
 			// FIXME: This doesn't seem to be covered by the Ottawa OSM guide. E.g. Laurier.
 			if (way.HasTag("cycleway", "track")) {
 				return true;

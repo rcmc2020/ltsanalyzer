@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace LTSAnalyzer {
@@ -101,36 +100,16 @@ namespace LTSAnalyzer {
 		/// <param name="way"></param>
 		/// <returns></returns>
 		private bool ParkingPresent(string id, Way way) {
-			if (way.HasTag("parking")) {
-				string newtag = "parking=" + way.Tags["parking"];
-				switch (way.Tags["parking"]) {
-					case "yes": return true;
-					case "no": return false;
-					default:
-						break;
-				}
+			if (way.HasTag("parking", "yes")) {
+				return true;
 			}
 			if (way.TagStartsWith("parking:")) {
 				foreach (KeyValuePair<string, string> tag in way.Tags) {
 					string k = tag.Key;
-					if (k.StartsWith("parking:")) {
+					if (k.StartsWith("parking:lane:")) {
 						string v = tag.Value;
-						switch (tag.Key) {
-							case "parking:condition:both:default":
-							case "parking:condition:both:maxstay":
-							case "parking:condition:both:time_interval":
-							case "parking:condition:left":
-							case "parking:condition:left:time_interval":
-							case "parking:condition:right":
-							case "parking:condition:right:maxstay":
-							case "parking:condition:right:time_interval":
-							case "parking:lane":
-							case "parking:lane:both":
-							case "parking:lane:left":
-							case "parking:lane:right":
-							default:
-								string newtag = k + "=" + v;
-								break;
+						if (v == "parallel" || v == "perpendicular" || v == "diagonal" || v == "yes" || v == "marked") {
+							return true;
 						}
 					}
 				}

@@ -54,7 +54,7 @@ namespace LTSAnalyzer {
 			OutputType = (appSettings["OutputType"] == null) ? OutputType.GeoJSON : (appSettings["OutputType"].ToLower().Trim() == "osm") ? OutputType.OSM : OutputType.GeoJSON;
 			Prefix = (appSettings["StressLevelPrefix"] == null) ? "level_" : appSettings["StressLevelPrefix"];
 			Timers = (appSettings["DisplayTimers"] == null) ? false : appSettings["DisplayTimers"].ToLower().Trim() == "true";
-			IncludeBannedHighways = (appSettings["IncludedBannedHighways"] == null) ? false : appSettings["IncludeBannedHighways"].ToLower().Trim() == "true";
+			IncludeBannedHighways = (appSettings["IncludeBannedHighways"] == null) ? false : appSettings["IncludeBannedHighways"].ToLower().Trim() == "true";
 			Verbose = (appSettings["Verbose"] == null) ? false : appSettings["Verbose"].ToLower().Trim() == "true";
 			for (int i = 0; i < args.Length; i++) {
 				string arg = args[i];

@@ -159,37 +159,28 @@ namespace LTSAnalyzer {
 		}
 
 		public int MixedTrafficAnalysis(string id, Way way) {
+			int lanes;
 			int maxSpeed = MaxSpeed(way);
-			int lanes = Lanes(way);
-			bool markedCentreLine = MarkedCentreLine(way);
-			bool isResidential = IsResidential(way);
 
 			if (maxSpeed <= 40) {
-				if ((lanes <= 3 && !markedCentreLine) || (lanes < 3 && isResidential)) {
-					return 1;
-				}
-				else if (lanes <= 3) {
+				lanes = Lanes(way);
+				if (lanes <= 3) {
 					return 2;
 				}
 				else if (lanes <= 5) {
 					return 3;
 				}
-				return 4;
 			}
 			else if (maxSpeed <= 50) {
-				if (lanes <= 3) {
-					if (!markedCentreLine || (lanes < 3 && isResidential)) {
-						return 2;
-					}
+				lanes = Lanes(way);
+				if (lanes < 3 && IsResidential(way)) {
+					return 2;
+				}
+				else if (lanes <= 3) {
 					return 3;
 				}
-				else {
-					return 4;
-				}
 			}
-			else {
-				return 4;
-			}
+			return 4;
 		}
 
 		public int BikeLaneAnalysis(string id, Way way) {

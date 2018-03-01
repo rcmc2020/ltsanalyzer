@@ -172,6 +172,9 @@ namespace LTSAnalyzer {
 				}
 			}
 			else if (maxSpeed <= 50) {
+				if (way.HasTag("service", "parking_aisle")) {
+					return 2;
+				}
 				lanes = Lanes(way);
 				if (lanes < 3 && IsResidential(way)) {
 					return 2;
@@ -263,11 +266,6 @@ namespace LTSAnalyzer {
 				}
 				if (way.HasTag("highway", "motorway") || way.HasTag("highway", "motorway_link")) {
 					return false;
-				}
-				if (way.HasTag("highway", "service")) {
-					if (way.HasTag("service", "driveway") || way.HasTag("service", "parking_aisle")) {
-						return false;
-					}
 				}
 				if (way.HasTag("footway", "sidewalk")) {
 					if (!way.HasTag("bicycle", "yes")) {

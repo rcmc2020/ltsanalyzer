@@ -276,7 +276,7 @@ namespace LTSAnalyzer {
 				// This is a preliminary test to make sure we only add ways that are potentially valid
 				// routes. This could be expanded to further filter the ways but this will typically 
 				// be done in the analysis phase.
-				if (StressModel.BikingPermitted(id, way)) {
+				if (StressModel.BikingPermitted(id, way) || _options.IncludeBannedHighways) {
 					_ways.Add(id, way);
 					foreach (string nodeRef in way.Nodes) {
 						if (!_usedNodes.Contains(nodeRef)) {
@@ -401,7 +401,8 @@ namespace LTSAnalyzer {
 		public void CreateLevelFilesGeoJson() {
 			string path = _options.Directory;
 			string prefix = _options.Prefix;
-			for (int level = 1; level <= StressModel.LevelCount; level++) {
+			int startLevel = _options.IncludeBannedHighways ? 0 : 1;
+			for (int level = startLevel; level <= StressModel.LevelCount; level++) {
 				string filename = Path.Combine(path, prefix + level.ToString() + ".json");
 				if (File.Exists(filename)) {
 					File.Delete(filename);

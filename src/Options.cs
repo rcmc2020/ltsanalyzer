@@ -22,6 +22,7 @@ namespace LTSAnalyzer {
 		public OutputType OutputType { get; set; }
 		public bool Verbose { get; set; }
 		public bool Timers { get; set; }
+		public bool IncludeBannedHighways { get; set; }
 
 		public readonly string Description = "OSM Cycling Level of Traffic Stress Analyzer";
 
@@ -30,7 +31,9 @@ namespace LTSAnalyzer {
 			Console.WriteLine(Description);
 			Console.WriteLine("Usage: " + name + " -f filename [-d directory][-i][-o otype][-p prefix][-t][-v]");
 			Console.WriteLine("where:");
-			Console.WriteLine(" -d  dir is the location where all files will be created.");
+			Console.WriteLine(" -0  Generate a level 0 file containing all highways where cyling");
+			Console.WriteLine("     is not permitted.");
+			Console.WriteLine(" -d  directory is the location where all files will be created.");
 			Console.WriteLine(" -f  filename  is path to the OSM XML input file.");
 			Console.WriteLine(" -o  otype is the output file type. It is either \"osm\" or \"geojson\".");
 			Console.WriteLine("     The default is geojson.");
@@ -51,6 +54,7 @@ namespace LTSAnalyzer {
 			OutputType = (appSettings["OutputType"] == null) ? OutputType.GeoJSON : (appSettings["OutputType"].ToLower().Trim() == "osm") ? OutputType.OSM : OutputType.GeoJSON;
 			Prefix = (appSettings["StressLevelPrefix"] == null) ? "level_" : appSettings["StressLevelPrefix"];
 			Timers = (appSettings["DisplayTimers"] == null) ? false : appSettings["DisplayTimers"].ToLower().Trim() == "true";
+			IncludeBannedHighways = (appSettings["IncludedBannedHighways"] == null) ? false : appSettings["IncludeBannedHighways"].ToLower().Trim() == "true";
 			Verbose = (appSettings["Verbose"] == null) ? false : appSettings["Verbose"].ToLower().Trim() == "true";
 			for (int i = 0; i < args.Length; i++) {
 				string arg = args[i];
@@ -100,6 +104,9 @@ namespace LTSAnalyzer {
 						Console.WriteLine("Error: -p command line argument must be followed by a file prefix.");
 						return false;
 					}
+				}
+				else if (arg == "-0") {
+					IncludeBannedHighways = true;
 				}
 				else if (arg == "-t") {
 					Timers = true;

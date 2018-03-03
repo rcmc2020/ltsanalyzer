@@ -276,11 +276,13 @@ namespace LTSAnalyzer {
 				// This is a preliminary test to make sure we only add ways that are potentially valid
 				// routes. This could be expanded to further filter the ways but this will typically 
 				// be done in the analysis phase.
-				if (StressModel.BikingPermitted(id, way) || _options.IncludeBannedHighways) {
-					_ways.Add(id, way);
-					foreach (string nodeRef in way.Nodes) {
-						if (!_usedNodes.Contains(nodeRef)) {
-							_usedNodes.Add(nodeRef);
+				if (_options.IncludeBannedHighways || StressModel.BikingPermitted(id, way)) {
+					if (way.HasTag("highway")) {
+						_ways.Add(id, way);
+						foreach (string nodeRef in way.Nodes) {
+							if (!_usedNodes.Contains(nodeRef)) {
+								_usedNodes.Add(nodeRef);
+							}
 						}
 					}
 				}

@@ -44,25 +44,31 @@ namespace LTSAnalyzer {
 		/// Returns the number of lanes.
 		/// </summary>
 		private int Lanes(Way way) {
+			int result = 2;
 			if (way.Tags.ContainsKey("lanes")) {
 				string l = way.Tags["lanes"];
 				if (l.Contains(";")) {
 					string[] list = l.Split(';');
-					int lmax = 1;
+					int lmax = 2;
 					foreach (string s in list) {
-						if (int.Parse(s) > lmax) {
-							lmax = int.Parse(s);
+						if (int.TryParse(s, out result)) {
+							if (result > lmax) {
+								lmax = result;
+							}
 						}
 					}
-					return lmax;
+					result = lmax;
 				}
 				else {
-					return int.Parse(way.Tags["lanes"]);
+					if (int.TryParse(way.Tags["lanes"], out result)) {
+						return result;
+					}
+					else {
+						result = 2;
+					}
 				}
 			}
-			else {
-				return 2;
-			}
+			return result;
 		}
 
 		/// <summary>

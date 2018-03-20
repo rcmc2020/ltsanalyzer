@@ -56,9 +56,6 @@ namespace LTSAnalyzer {
 								lmax = result;
 							}
 						}
-						else {
-							int debug = 1;
-						}
 					}
 					result = lmax;
 				}
@@ -181,7 +178,7 @@ namespace LTSAnalyzer {
 				}
 			}
 			else if (maxSpeed <= 50) {
-				if (way.HasTag("service", "parking_aisle")) {
+				if (way.HasTag("service", "parking_aisle") || way.HasTag("service", "driveway")) {
 					return 2;
 				}
 				lanes = Lanes(way);

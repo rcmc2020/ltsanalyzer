@@ -56,6 +56,9 @@ namespace LTSAnalyzer {
 								lmax = result;
 							}
 						}
+						else {
+							int debug = 1;
+						}
 					}
 					result = lmax;
 				}
@@ -298,7 +301,7 @@ namespace LTSAnalyzer {
 				}
 			}
 			// FIXME: This doesn't seem to be covered by the Ottawa OSM guide. E.g. Laurier.
-			if (way.HasTag("cycleway", "track")) {
+			if (way.TagStartsWith("cycleway", "track") || way.TagStartsWith("cycleway", "opposite_track")) {
 				return true;
 			}
 
@@ -307,10 +310,17 @@ namespace LTSAnalyzer {
 
 		private bool IsBikeLane(string id, Way way) {
 			if (!IsSeparatedPath(id, way)) {
-				if (way.HasTag("cycleway", "lane") || way.HasTag("cycleway:right", "lane") || way.HasTag("cycleway:middle", "lane") || way.HasTag("cycleway", "opposite_lane")) {
+				if (way.TagStartsWith("cycleway", "crossing")
+					|| way.TagStartsWith("cycleway", "lane")
+					|| way.TagStartsWith("cycleway", "left")
+					|| way.TagStartsWith("cycleway", "opposite")
+					|| way.TagStartsWith("cycleway", "opposite_lane")
+					|| way.TagStartsWith("cycleway", "right")
+					|| way.TagStartsWith("cycleway", "yes")
+				) {
 					return true;
 				}
-				if (way.TagStartsWith("shoulder")) {
+				if (way.HasTag("shoulder:access:bicycle", "yes")) {
 					return true;
 				}
 			}

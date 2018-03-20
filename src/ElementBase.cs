@@ -73,8 +73,7 @@ namespace LTSAnalyzer {
 		/// <returns></returns>
 		public bool TagStartsWith(string key, string value) {
 			if (_tags == null) return false;
-			List<string> list = _tags.Keys.Where(k => k.StartsWith(key)).ToList();
-			return list.Contains(value);
+			return _tags.Keys.Where(k => k.StartsWith(key) && _tags[k] == value).ToList().Count > 0;
 		}
 
 		/// <summary>

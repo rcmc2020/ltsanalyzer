@@ -1,0 +1,9 @@
+parking:lane:both=no_stopping : 75
+parking:lane:both=no_parking : 22
+parking:lane:both=parallel : 4
+parking:lane:left=parallel : 1
+parking:lane:right=no_parking : 1
+parking:lane:right=parallel : 1
+parking:lane:right=no_stopping : 2
+parking:lane:left=no_parking : 1
+parking:lane:right=perpendicular : 1

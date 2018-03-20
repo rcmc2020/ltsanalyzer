@@ -249,8 +249,6 @@ namespace LTSAnalyzer {
 			int lanes = Lanes(way);
 			int maxSpeed = MaxSpeed(way);
 			double width = BikeAndParkingWidth(way);
-			int blockageLTS = BikeLaneBlockageLTS(way);
-			bool isResidential = IsResidential(way);
 
 			if (lanes <= 1) {
 				lts = Math.Max(lts, 1);
@@ -261,6 +259,22 @@ namespace LTSAnalyzer {
 			else if (lanes >= 2) {
 				lts = Math.Max(lts, 3);
 			}
+			if (width <= 1.7) {
+				lts = Math.Max(lts, 2);
+			}
+			else {
+				lts = Math.Max(lts, 1);
+			}
+			if (maxSpeed <= 50) {
+				lts = Math.Max(lts, 1);
+			}
+			else if (maxSpeed <= 65) {
+				lts = Math.Max(lts, 3);
+			}
+			else {
+				lts = 4;
+			}
+			lts = Math.Max(lts, BikeLaneBlockageLTS(way));
 
 			return lts;
 		}

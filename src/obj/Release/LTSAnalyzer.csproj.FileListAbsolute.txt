@@ -1,0 +1,6 @@
+E:\spr\GitHub\ltsanalyzer\src\bin\Release\LTSAnalyzer.exe.config
+E:\spr\GitHub\ltsanalyzer\src\bin\Release\LTSAnalyzer.exe
+E:\spr\GitHub\ltsanalyzer\src\bin\Release\LTSAnalyzer.pdb
+E:\spr\GitHub\ltsanalyzer\src\obj\Release\LTSAnalyzer.exe
+E:\spr\GitHub\ltsanalyzer\src\obj\Release\LTSAnalyzer.pdb
+E:\spr\GitHub\ltsanalyzer\src\obj\Release\LTSAnalyzer.csprojResolveAssemblyReference.cache

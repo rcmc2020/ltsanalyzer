@@ -94,6 +94,9 @@ namespace LTSAnalyzer {
 				if (way.HasTag("highway", "motorway")) {
 					return 100;
 				}
+				else if (way.HasTag("highway", "primary") || way.HasTag("highway", "secondary")) {
+					return 80;
+				}
 				else {
 					return 50;
 				}

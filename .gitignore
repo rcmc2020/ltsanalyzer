@@ -2,6 +2,7 @@
 *.pdb
 *.exe
 *.manifest
-src/obj/Debug/LTSAnalyzer.csproj.FileListAbsolute.txt
 *.osm
 *.suo
+src/obj/
+src/bin/

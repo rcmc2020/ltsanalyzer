@@ -132,6 +132,10 @@ namespace LTSAnalyzer {
 				string id = kv.Key;
 				Way way = kv.Value;
 
+				if (id == "539945116") {
+					int debug = 1;
+				}
+
 				level = EvaluateWay(id, way);
 				way.Level = level;
 				// This marks the used nodes in our file with being referenced in that level.
@@ -168,28 +172,44 @@ namespace LTSAnalyzer {
 		}
 
 		public int MixedTrafficAnalysis(string id, Way way) {
-			int lanes;
+			bool isResidential = IsResidential(way);
+			int lanes = Lanes(way);
 			int maxSpeed = MaxSpeed(way);
 
-			if (maxSpeed <= 40) {
-				lanes = Lanes(way);
-				if (lanes <= 3) {
-					return 2;
-				}
-				else if (lanes <= 5) {
-					return 3;
-				}
+			if (way.HasTag("highway", "steps")) {
+				return 1;
 			}
-			else if (maxSpeed <= 50) {
-				if (way.HasTag("service", "parking_aisle") || way.HasTag("service", "driveway")) {
+			if (way.HasTag("highway", "service") && way.HasTag("service", "alley")) {
+				return 2;
+			}
+			if (maxSpeed <= 50) {
+				if (way.HasTag("service", "parking_aisle")) {
 					return 2;
 				}
-				lanes = Lanes(way);
-				if (lanes < 3 && IsResidential(way)) {
+				if (way.HasTag("service", "driveway")) {
 					return 2;
 				}
-				else if (lanes <= 3) {
-					return 3;
+				if (maxSpeed <= 40) {
+					if (lanes <= 3) {
+						return 2;
+					}
+					else if (lanes <= 5) {
+						return 3;
+					}
+					else {
+						return 4;
+					}
+				}
+				else {
+					if (lanes < 3 && isResidential) {
+						return 2;
+					}
+					else if (lanes <= 3) {
+						return 3;
+					}
+					else {
+						return 4;
+					}
 				}
 			}
 			return 4;
@@ -205,79 +225,73 @@ namespace LTSAnalyzer {
 		}
 
 		public int BikeLaneAnalysisParkingPresent(string id, Way way) {
-			int lts = 0;
 			int lanes = Lanes(way);
 			int maxSpeed = MaxSpeed(way);
 			double width = BikeAndParkingWidth(way);
-			int blockageLTS = BikeLaneBlockageLTS(way);
 			bool isResidential = IsResidential(way);
 
-			if (lanes <= 1) {
-				lts = Math.Max(lts, 1);
-			}
-			else if (lanes >= 2) {
+			int lts = 1;
+			if (lanes >= 3) {
 				lts = Math.Max(lts, 3);
 			}
 
 			if (width <= 4.1) {
 				lts = Math.Max(lts, 3);
 			}
-			else if (width <= 4.25 || (width < 4.5 && (maxSpeed < 40 || isResidential))) {
+			else if (width <= 4.25) {
 				lts = Math.Max(lts, 2);
 			}
-			else {
-				lts = Math.Max(lts, 1);
+			else if (width < 4.5 && (maxSpeed < 40 || isResidential)) {
+				lts = Math.Max(lts, 2);
 			}
 
-			if (maxSpeed <= 40) {
-				lts = Math.Max(lts, 1);
+			if (maxSpeed > 40) {
+				if (maxSpeed <= 50) {
+					lts = Math.Max(lts, 2);
+				}
+				else if (maxSpeed < 65) {
+					lts = Math.Max(lts, 3);
+				}
+				else {
+					lts = Math.Max(lts, 4);
+				}
 			}
-			else if (maxSpeed <= 50) {
-				lts = Math.Max(lts, 2);
-			}
-			else if (maxSpeed <= 55) {
+			if (!isResidential) {
 				lts = Math.Max(lts, 3);
 			}
-			else {
-				lts = Math.Max(lts, 4);
-			}
-
-			lts = Math.Max(lts, BikeLaneBlockageLTS(way));
 
 			return lts;
 		}
 
 		public int BikeLaneAnalysisNoParking(string id, Way way) {
-			int lts = 0;
 			int lanes = Lanes(way);
 			int maxSpeed = MaxSpeed(way);
 			double width = BikeAndParkingWidth(way);
+			bool isResidential = IsResidential(way);
 
-			if (lanes <= 1) {
-				lts = Math.Max(lts, 1);
-			}
-			else if (lanes == 2 && HasSeparatingMedian(id, way)) {
+			int lts = 1;
+			if (lanes == 3 && HasSeparatingMedian(id, way)) {
 				lts = Math.Max(lts, 2);
 			}
-			else if (lanes >= 2) {
+			else if (lanes >= 3) {
 				lts = Math.Max(lts, 3);
 			}
+			
 			if (width <= 1.7) {
 				lts = Math.Max(lts, 2);
 			}
-			else {
-				lts = Math.Max(lts, 1);
+
+			if (maxSpeed > 50) {
+				if (maxSpeed < 65) {
+					lts = Math.Max(lts, 3);
+				}
+				else {
+					lts = 4;
+				}
 			}
-			if (maxSpeed <= 50) {
-				lts = Math.Max(lts, 1);
-			}
-			else if (maxSpeed <= 65) {
+			if (!isResidential) {
 				lts = Math.Max(lts, 3);
 			}
-			else {
-				lts = 4;
-			}
-			lts = Math.Max(lts, BikeLaneBlockageLTS(way));
 
 			return lts;
 		}

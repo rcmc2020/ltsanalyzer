@@ -1,8 +1,9 @@
 
-*.pdb
 *.exe
 *.manifest
 *.osm
+*.pdb
 *.suo
+*.user
 src/obj/
 src/bin/

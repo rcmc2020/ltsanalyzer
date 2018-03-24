@@ -131,11 +131,6 @@ namespace LTSAnalyzer {
 			foreach (KeyValuePair<string, Way> kv in _ways) {
 				string id = kv.Key;
 				Way way = kv.Value;
-
-				if (id == "539945116") {
-					int debug = 1;
-				}
-
 				level = EvaluateWay(id, way);
 				way.Level = level;
 				// This marks the used nodes in our file with being referenced in that level.
